@@ -1,0 +1,11 @@
+.container{
+ display:inline-block;
+ width:50%;
+ height:100%;
+}
+.display{
+	display:inline-block;
+	position:fixed;
+	left:50%;
+	height:100%;
+}

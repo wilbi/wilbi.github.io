@@ -1,6 +1,7 @@
 $(document).ready(function(){
 	
 	$("#send").on("click", function(){
+		//sanity checks on user input
 		let teamsize = parseInt($("#size").val());
 		if (isNaN(teamsize) || teamsize <= 0) return -1;
 		let names = $("#names").val();
@@ -10,13 +11,9 @@ $(document).ready(function(){
 		console.log(sr)
 		sr = sr.map(a => parseInt(a));
 		if(isNaN(sr[sr.length-1])) sr.pop();
-		//console.log(parser, names, sr);
+		
 		const pool = sr.length;
 		let best = 999999, bestTeam, exclude, bestExclude, teamSR, i, r = 0, choice, temparr, diff = 400, average, j, teams = [], arr = [];
-		/*for(i = 0; i < pool; i++){
-			let n = Math.floor(Math.random()*1000);
-			arr.push(n);
-		}*/
 		
 		while(diff >= 300 && r != 100000){
 			for(let h = 0; h < Math.floor(pool/teamsize)+1; h++){
@@ -41,7 +38,7 @@ $(document).ready(function(){
 			r++;
 			teams = [];
 		}
-		//pop used ones here
+		//Generate JSON out of the data because json is nice
 		generatedTeams = bestTeam.map(team => team.map(player => {
 			let index = sr.indexOf(player);
 			let name = names[sr.indexOf(player)];
@@ -49,7 +46,7 @@ $(document).ready(function(){
 			names.splice(index,1);
 			return {"name":name, "sr": player}
 		}));
-		console.log(generatedTeams, names);
+		//Formulate the eventual output
 		let teamOutput = "Teams:<br>";
 		for(i = 0; i < generatedTeams.length; i++){
 			teamOutput += "Team " + (i+1) + " Average Sr: " + Math.floor(teamSR[i]/teamsize);
@@ -59,9 +56,6 @@ $(document).ready(function(){
 			teamOutput += "<br>"
 		}
 		$("#teamDisplay").html(teamOutput);
-		
-		//console.log(diff, i, j, r);
-		//console.log(bestTeam, best, bestExclude);
 	});
 	function parseInput(input){
 		parser = input.replace(/(\s)+/gim, ";")
