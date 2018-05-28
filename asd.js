@@ -8,10 +8,9 @@ $(document).ready(function(){
 		let sr = $("#sr").val();
 		names = parseInput(names);
 		sr = parseInput(sr);
-		console.log(sr)
 		sr = sr.map(a => parseInt(a));
 		if(isNaN(sr[sr.length-1])) sr.pop();
-		
+		if(names.length != sr.length) return -1;
 		const pool = sr.length;
 		let best = 999999, bestTeam, exclude, bestExclude, teamSR, i, r = 0, choice, temparr, diff = 400, average, j, teams = [], arr = [];
 		
@@ -28,13 +27,18 @@ $(document).ready(function(){
 				choice = Math.floor(Math.random()*temparr.length);
 				teams[i].push(temparr[choice]);
 				temparr.splice(choice, 1);
-				if(j === 6){ i++;j = 0;}
+				if(j === teamsize){ i++;j = 0;}
 				j++;
 			}
 			if (teams[i].length != teamsize) exclude = teams.pop();
 			average = teams.map(team => team.reduce(function(sum, val){return sum+val;}));
-			diff = average.reduce(function(a,b){return Math.max(a,b)}) - average.reduce(function(a,b){return Math.min(a,b)});
-			if (diff < best) {bestTeam = teams.slice(); best = diff; bestExclude = exclude;teamSR = average}
+			diff = average.reduce((a,b) => Math.max(a,b)) - average.reduce((a,b) => Math.min(a,b));
+			if (diff < best) {
+				bestTeam = teams.slice();
+				best = diff;
+				bestExclude = exclude;
+				teamSR = average
+			}
 			r++;
 			teams = [];
 		}
