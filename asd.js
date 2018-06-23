@@ -11,6 +11,7 @@ $(document).ready(function(){
 		sr = sr.map(a => parseInt(a));
 		if(isNaN(sr[sr.length-1])) sr.pop();
 		if(names.length != sr.length) names.pop();
+		if(names.length === 0 || sr.length === 0) return -1;
 		const pool = sr.length;
 		let best = 999999, bestTeam, exclude, bestExclude, teamSR, i, r = 0, choice, temparr, diff = 400, average, j, teams = [], arr = [];
 		while(best >= 100*teamsize && r != 100000){
@@ -62,11 +63,11 @@ $(document).ready(function(){
 
 		$("#teamDisplay").html(teamOutput);
 	});
-	
+
 	$("#testData").on("click", () => {
 		let names = [];
 		let srs = [];
-		for(let i = 0; i < 32; i++){
+		for(let i = 0; i < 500; i++){
 			names.push(Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0,7));
 			srs.push((Math.floor(norm()*2500)+2500));
 		}
@@ -91,7 +92,8 @@ $(document).ready(function(){
 		sr = sr.map(a => parseInt(a));
 		if(isNaN(sr[sr.length-1])) sr.pop();
 		if(names.length != sr.length) names.pop();
-
+		/* Add messages to user */
+		if(names.length === 0 || sr.length === 0) return -1;
 		const pool = sr.length;
 		let teamSR = 0, choice, arr = [], poolSize;
 		poolSize = Math.floor(names.length/teamsize);
@@ -130,6 +132,16 @@ $(document).ready(function(){
 			if(a.avgSr > b.avgSr)return 1;
 			return 0;
 		});
-		console.log(teams[poolSize-1].avgSr-teams[0].avgSr, teamSR)
+		let diff = teams[poolSize-1].avgSr-teams[0].avgSr
+		let teamOutput = "Largest Difference: " + diff + "\nAverage Sr: " + teamSR + "\nTeams:\n";
+		for(i = 0; i < teams.length; i++){
+			teamOutput += "Team " + (i+1) + " Average Sr: " + teams[i].avgSr;
+			for(j = 0; j < teams[i].length-1; j++){
+				teamOutput += "\n" + teams[i][j].name + ", " + teams[i][j].rank + " sr";
+			}
+			teamOutput += "\n"
+		}
+
+		$("#teamDisplay").html(teamOutput);
 	})
 });
