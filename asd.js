@@ -1,7 +1,12 @@
+/* TODO:  Add messages to user
+					Merge both algorithms under the same button
+					Merge outputs in to a single function
+*/
+
 $(document).ready(function(){
-/*This method is better for small datasets*/
+
 	$("#send").on("click", function(){
-		//sanity checks on user input
+
 		$("#send").attr("disabled", "disabled")
 		/*
 		Fix team sizes not being respected
@@ -28,8 +33,6 @@ $(document).ready(function(){
 		for(let i = 0; i<poolSize; i++){
 			teamNum.push(i);
 		}
-		/* There has to be a better way than doing over n*100000 iterations to Generate
-		pseudo balanced pseudo random teams */
 		let dup;
 		console.log("start loop")
 		while(best >= 50 && r--){
@@ -64,8 +67,9 @@ $(document).ready(function(){
 			teams = [];
 		}
 		console.log("Stop loop", r)
-		//console.log(bestTeam, teams, dup, teamNum, exclude, arr[exclude[0]])
-		//Formulate the eventual output
+
+		/* Formulate the eventual output */
+
 		let teamOutput = "Largest Difference: " + Math.floor(best)
 		teamOutput += "\nAverage Sr: " + Math.floor(bestTeam.reduce((total, team) => team.avgSr+total, 0)/bestTeam.length)
 		teamOutput += "\nTeams:\n";
@@ -115,7 +119,7 @@ $(document).ready(function(){
 		parser = input.replace(/(\s)+/gim, ";")
 		return parser.split(";");
 	}
-/* Generate normally distributed numbers */
+/* Generate pseudo-normally distributed numbers */
 	let norm = () => {
 		return ((Math.random() + Math.random() + Math.random() + Math.random() + Math.random() + Math.random()) - 3) / 3;
 	}
@@ -124,24 +128,10 @@ $(document).ready(function(){
 	This method is better for large datasets
 */
 	$("#alg").on("click", () => {
-		/*
-		let teamsize = parseInt($("#size").val());
-		if (isNaN(teamsize) || teamsize <= 0) return -1;
-		let names = $("#names").val();
-		let sr = $("#sr").val();
-		names = parseInput(names);
-		sr = parseInput(sr);
-		sr = sr.map(a => parseInt(a));
-		if(isNaN(sr[sr.length-1])) sr.pop();
-		if(names.length != sr.length) names.pop();
-		if(names.length === 0 || sr.length === 0) return -1;
-		*/
-
 		let data = readData();
 		let names = data.names;
 		let sr = data.sr;
 		const teamsize = data.teamsize;
-		/* Add messages to user */
 
 		const pool = sr.length;
 		let teamSR = 0, choice, arr = [], poolSize;
