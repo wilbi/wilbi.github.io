@@ -9,3 +9,17 @@
 	left:50%;
 	height:95%;
 }
+.notif{
+  width: 80%;
+  left: 10%;
+  top:50%;
+  position: fixed;
+  text-align: center;
+  z-index: 10;
+  background-color: #ff9696;
+  font-size: 1.5em;
+  border-radius: 10px;
+}
+.hidden{
+  display: none;
+}

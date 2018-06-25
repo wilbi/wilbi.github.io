@@ -21,21 +21,32 @@ $(document).ready(function(){
 
 		const pool = sr.length;
 		const poolSize = Math.floor(pool/teamsize);
-		let best = 999999, bestTeam, exclude = [], i, r = 100000, choice, average, teams = [], teamNum = [];
+		let best = 999999, bestTeam, exclude = [], i, r = 100000, choice, average, teams = [], teamNum = [], diff;
 		/* Merge the lists */
-		let arr = [];
-		for(let i = 0; i < pool; i++){
-			let name = names.pop();
-			let rank = sr.pop();
-			arr.push({"name":name, "rank":rank});
+		if(pool > 250){
+			r = 10;
+		} else if (pool > 75) {
+			r =
+			50000;
 		}
-		//console.log(arr)
+		merged = merge(names,sr);
+		if(merged.err){
+			displayError(merged.err);
+			return;
+		}
+		arr = merged.final;
+		let arr1 = JSON.parse(JSON.stringify(arr));
+		let results = initial(arr1, teamsize, poolSize);
+		bestTeam = results.teams;
+		bestExclude = results.arr;
+		best = results.diff;
+		let source = 0;
 		for(let i = 0; i<poolSize; i++){
 			teamNum.push(i);
 		}
 		let dup;
-		console.log("start loop")
 		while(best >= 50 && r--){
+
 			for(let h = 0; h < poolSize; h++){
 				teams.push([]);
 			}
@@ -63,88 +74,56 @@ $(document).ready(function(){
 				bestTeam = teams.slice();
 				best = diff;
 				bestExclude = exclude;
+				source = 1;
+				console.log("source change")
 			}
 			teams = [];
 		}
-		console.log("Stop loop", r)
-
+		if(source === 0) arr = bestExclude;
 		/* Formulate the eventual output */
-
 		let teamOutput = "Largest Difference: " + Math.floor(best)
 		teamOutput += "\nAverage Sr: " + Math.floor(bestTeam.reduce((total, team) => team.avgSr+total, 0)/bestTeam.length)
-		teamOutput += "\nTeams:\n";
-		teamOutput += (exclude.length === 0) ? "" : "Excluded: " + exclude.map(index => arr[index].name).join(", ") + "\n"
+		teamOutput += (bestExclude.length === 0) ? "" : "\nExcluded: " + bestExclude.map(index =>{
+			let ret = (index.hasOwnProperty("name")) ? index.name : arr[index].name
+			return ret;
+		}).join(", ") + "\n"
+		teamOutput += "\nTeams:";
+		teamOutput += bestTeam.map((team, i) => {
+			return "\nTeam "+ (i+1) + ", Average Sr: " +Math.floor(team.avgSr) +
+			team.map(member => "\n\t" + member.name + ", " + member.rank + "sr")
+		})
+		/*
 		for(i = 0; i < bestTeam.length; i++){
 			teamOutput += "Team " + (i+1)+ ","+ bestTeam[i].length + " Average Sr: " + Math.floor(bestTeam[i].avgSr);
 			for(let j = 0; j < bestTeam[i].length; j++){
 				teamOutput += "\n" + bestTeam[i][j].name + ", " + bestTeam[i][j].rank + " sr";
 			}
 			teamOutput += "\n"
-		}
+		}*/
 		$("#teamDisplay").html(teamOutput);
 		$("#send").removeAttr("disabled")
 	});
 
 /* Generate test data */
-
-	$("#testData").on("click", () => {
-		let names = [];
-		let srs = [];
-		for(let i = 0; i < 75; i++){
-			names.push(Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0,7));
-			srs.push((Math.floor(norm()*2500)+2500));
-		}
-		$("#names").html(names.map((name) => { return name + '\n'}));
-		$("#sr").html(srs.map((sr) => {return sr + '\n'}));
-	})
+/*
+$("#testData").on("click", () => {
+	let names = [];
+	let srs = [];
+	for(let i = 0; i < 1000; i++){
+		names.push(Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0,7));
+		srs.push((Math.floor(norm()*2500)+2500));
+	}
+	$("#names").html(names.map((name) => { return name + '\n'}));
+	$("#sr").html(srs.map((sr) => {return sr + '\n'}));
+})
 
 /* Parse Inputs */
-	function readData(){
-		let teamsize = parseInt($("#size").val());
-		if (isNaN(teamsize) || teamsize <= 0) return -1;
-		let names = $("#names").val();
-		let sr = $("#sr").val();
-		names = parseInput(names);
-		sr = parseInput(sr);
-		sr = sr.map(a => parseInt(a));
-		if(isNaN(sr[sr.length-1])) sr.pop();
-		if(names.length != sr.length) names.pop();
-		if(names.length === 0 || sr.length === 0) return -1;
 
-		return {names, sr, teamsize}
+/* Use simple and fast algorithm to find initial best case */
 
-	}
-
-	function parseInput(input){
-		parser = input.replace(/(\s)+/gim, ";")
-		return parser.split(";");
-	}
-/* Generate pseudo-normally distributed numbers */
-	let norm = () => {
-		return ((Math.random() + Math.random() + Math.random() + Math.random() + Math.random() + Math.random()) - 3) / 3;
-	}
-
-/*
-	This method is better for large datasets
-*/
-	$("#alg").on("click", () => {
-		let data = readData();
-		let names = data.names;
-		let sr = data.sr;
-		const teamsize = data.teamsize;
-
-		const pool = sr.length;
-		let teamSR = 0, choice, arr = [], poolSize;
-		poolSize = Math.floor(names.length/teamsize);
-		let teams = []//Array(poolSize).fill(new Array());
-
-		/* Merge Lists */
-
-		for(let i = 0; i < pool; i++){
-			let name = names.pop();
-			let rank = sr.pop();
-			arr.push({"name":name, "rank":rank});
-		}
+	function initial(arr, teamsize, poolSize){
+		let teamSR = 0, choice;
+		let teams = [];
 		arr.sort((a,b) => {
 			if(a.rank < b.rank) return -1;
 			if(a.rank > b.rank) return 1;
@@ -154,7 +133,6 @@ $(document).ready(function(){
 		for(let i = 0; i<teamsize; i++){
 			pools.push(arr.splice(0,Math.min(arr.length, poolSize)))
 		}
-
 		/* Divide in to teams */
 
 		for(let i = 0; i<poolSize; i++){
@@ -179,19 +157,53 @@ $(document).ready(function(){
 			return 0;
 		});
 		let diff = teams[poolSize-1].avgSr-teams[0].avgSr
+		return {teams, arr, diff}
+	}
 
-		/* Output */
+	function readData(){
+		let teamsize = parseInt($("#size").val());
+		if (isNaN(teamsize) || teamsize <= 0) return -1;
+		let names = $("#names").val();
+		let sr = $("#sr").val();
+		names = parseInput(names);
+		sr = parseInput(sr);
+		sr = sr.map(a => parseInt(a));
+		if(isNaN(sr[sr.length-1])) sr.pop();
+		if(names.length != sr.length) names.pop();
+		if(names.length === 0 || sr.length === 0) return -1;
 
-		let teamOutput = "Largest Difference: " + diff
-		teamOutput += "\nAverage Sr: " + teamSR + "\nTeams:\n";
-		teamOutput += (arr.length === 0) ? "" : "Excluded: " + arr.map(player => player.name).join(", ") + "\n"
-		for(i = 0; i < teams.length; i++){
-			teamOutput += "Team " + (i+1) + " Average Sr: " + teams[i].avgSr;
-			for(j = 0; j < teams[i].length-1; j++){
-				teamOutput += "\n" + teams[i][j].name + ", " + teams[i][j].rank + " sr";
-			}
-			teamOutput += "\n"
+		return {names, sr, teamsize}
+
+	}
+
+	function merge(arr1, arr2){
+		let len = Math.min(arr1.length, arr2.length);
+		let err = 0;
+		let final = [];
+		if(arr1.length != arr2.length) err = 1;
+		for(let i = 0; i < len; i++){
+			let name = arr1.pop();
+			let rank = arr2.pop();
+			final.push({"name":name, "rank":rank});
 		}
-		$("#teamDisplay").html(teamOutput);
-	})
+		return {final, err};
+	}
+
+	function parseInput(input){
+		parser = input.replace(/(\s)+/gim, ";")
+		return parser.split(";");
+	}
+/* Generate pseudo-normally distributed numbers */
+/*
+	let norm = () => {
+		return ((Math.random() + Math.random() + Math.random() + Math.random() + Math.random() + Math.random()) - 3) / 3;
+	}
+	function displayError(code){
+		let notif = $("#notif")
+		notif.html("The lists are not the same length")
+		notif.toggleClass("hidden");
+		$("#send").removeAttr("disabled");
+		setTimeout(() => $("#notif").toggleClass("hidden"), 3000)
+	}
+*/
 });
