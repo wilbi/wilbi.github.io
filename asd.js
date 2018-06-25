@@ -13,6 +13,10 @@ $(document).ready(function(){
 		*/
 
 		let data = readData();
+		if(data.err) {
+			displayError(data.err)
+			return;
+		}
 		let names = data.names;
 		let sr = data.sr;
 		const teamsize = data.teamsize;
@@ -24,7 +28,7 @@ $(document).ready(function(){
 		let best = 999999, bestTeam, exclude = [], i, r = 100000, choice, average, teams = [], teamNum = [], diff;
 		/* Merge the lists */
 		if(pool > 250){
-			r = 10;
+			r = 1000;
 		} else if (pool > 75) {
 			r =
 			50000;
@@ -90,22 +94,14 @@ $(document).ready(function(){
 		teamOutput += "\nTeams:";
 		teamOutput += bestTeam.map((team, i) => {
 			return "\nTeam "+ (i+1) + ", Average Sr: " +Math.floor(team.avgSr) +
-			team.map(member => "\n\t" + member.name + ", " + member.rank + "sr")
-		})
-		/*
-		for(i = 0; i < bestTeam.length; i++){
-			teamOutput += "Team " + (i+1)+ ","+ bestTeam[i].length + " Average Sr: " + Math.floor(bestTeam[i].avgSr);
-			for(let j = 0; j < bestTeam[i].length; j++){
-				teamOutput += "\n" + bestTeam[i][j].name + ", " + bestTeam[i][j].rank + " sr";
-			}
-			teamOutput += "\n"
-		}*/
+			team.map(member => "\n\t" + member.name + ", " + member.rank + " sr").join("")
+		}).join("")
 		$("#teamDisplay").html(teamOutput);
 		$("#send").removeAttr("disabled")
 	});
 
 /* Generate test data */
-/*
+
 $("#testData").on("click", () => {
 	let names = [];
 	let srs = [];
@@ -134,7 +130,6 @@ $("#testData").on("click", () => {
 			pools.push(arr.splice(0,Math.min(arr.length, poolSize)))
 		}
 		/* Divide in to teams */
-
 		for(let i = 0; i<poolSize; i++){
 			teams.push([]);
 			for(let j = 1; j < teamsize-1; j++){
@@ -143,8 +138,7 @@ $("#testData").on("click", () => {
 			teams[i].push(pools[0].splice(0,1)[0]);
 			teams[i].push(pools[teamsize-1].pop());
 			teams[i].avgSr = Math.floor(
-			teams[i].reduce((totalRanking, member) =>
-											{return member.rank+totalRanking},0)/teamsize);
+			teams[i].reduce((totalRanking, member) => member.rank+totalRanking,0)/teamsize);
 			teamSR += teams[i].avgSr;
 		}
 
@@ -162,17 +156,16 @@ $("#testData").on("click", () => {
 
 	function readData(){
 		let teamsize = parseInt($("#size").val());
-		if (isNaN(teamsize) || teamsize <= 0) return -1;
+		let err = 0;
+		if (isNaN(teamsize) || teamsize <= 0) err = 2;
 		let names = $("#names").val();
 		let sr = $("#sr").val();
 		names = parseInput(names);
 		sr = parseInput(sr);
 		sr = sr.map(a => parseInt(a));
-		if(isNaN(sr[sr.length-1])) sr.pop();
-		if(names.length != sr.length) names.pop();
-		if(names.length === 0 || sr.length === 0) return -1;
-
-		return {names, sr, teamsize}
+		sr = sr.filter(Number);
+		if(names.length === 0 || sr.length === 0) return 1;
+		return {names, sr, teamsize, err}
 
 	}
 
@@ -181,29 +174,31 @@ $("#testData").on("click", () => {
 		let err = 0;
 		let final = [];
 		if(arr1.length != arr2.length) err = 1;
-		for(let i = 0; i < len; i++){
-			let name = arr1.pop();
-			let rank = arr2.pop();
-			final.push({"name":name, "rank":rank});
+		else{
+			for(let i = 0; i < len; i++){
+				let name = arr1.pop();
+				let rank = arr2.pop();
+				final.push({"name":name, "rank":rank});
+			}
 		}
 		return {final, err};
 	}
 
 	function parseInput(input){
-		parser = input.replace(/(\s)+/gim, ";")
-		return parser.split(";");
+		return input.replace(/(\s)+/gim, ";").split(";").filter(String);
 	}
 /* Generate pseudo-normally distributed numbers */
-/*
+
 	let norm = () => {
 		return ((Math.random() + Math.random() + Math.random() + Math.random() + Math.random() + Math.random()) - 3) / 3;
 	}
 	function displayError(code){
 		let notif = $("#notif")
-		notif.html("The lists are not the same length")
+		let messages = ["The lists are not the same length", "Teamsize not set"]
+		notif.html(messages[code-1])
 		notif.toggleClass("hidden");
 		$("#send").removeAttr("disabled");
 		setTimeout(() => $("#notif").toggleClass("hidden"), 3000)
 	}
-*/
+
 });
