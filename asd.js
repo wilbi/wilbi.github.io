@@ -1,17 +1,8 @@
-/* TODO:  Add messages to user
-					Merge both algorithms under the same button
-					Merge outputs in to a single function
-*/
 
 $(document).ready(function(){
-
 	$("#send").on("click", function(){
 
 		$("#send").attr("disabled", "disabled")
-		/*
-		Fix team sizes not being respected
-		*/
-
 		let data = readData();
 		if(data.err) {
 			displayError(data.err)
@@ -20,12 +11,9 @@ $(document).ready(function(){
 		let names = data.names;
 		let sr = data.sr;
 		const teamsize = data.teamsize;
-
-		/* Add messages to user */
-
 		const pool = sr.length;
 		const poolSize = Math.floor(pool/teamsize);
-		let best = 999999, bestTeam, exclude = [], i, r = 100000, choice, average, teams = [], teamNum = [], diff;
+		let exclude = [], i, r = 100000, choice, average, teams = [], teamNum = [], diff;
 		/* Merge the lists */
 		if(pool > 250){
 			r = 1000;
@@ -38,19 +26,19 @@ $(document).ready(function(){
 			displayError(merged.err);
 			return;
 		}
+		/* Duplicate the array */
 		arr = merged.final;
 		let arr1 = JSON.parse(JSON.stringify(arr));
+		/* Use simple and fast algorithm to find initial best case */
 		let results = initial(arr1, teamsize, poolSize);
-		bestTeam = results.teams;
-		bestExclude = results.arr;
-		best = results.diff;
-		let source = 0;
+		let bestTeam = results.teams;
+		let bestExclude = results.arr;
+		let best = results.diff;
 		for(let i = 0; i<poolSize; i++){
 			teamNum.push(i);
 		}
 		let dup;
 		while(best >= 50 && r--){
-
 			for(let h = 0; h < poolSize; h++){
 				teams.push([]);
 			}
@@ -63,7 +51,7 @@ $(document).ready(function(){
 			dup = teamNum.slice();
 			i = arr.length;
 			while(i--){
-			if(exclude.filter(index => index === i).length != 0) continue;
+				if(exclude.filter(index => index === i).length != 0) continue;
 				choice = Math.floor(Math.random()*dup.length);
 				teams[dup[choice]].push(arr[i]);
 				if(teams[dup[choice]].length === teamsize) dup.splice(choice,1);
@@ -78,13 +66,11 @@ $(document).ready(function(){
 				bestTeam = teams.slice();
 				best = diff;
 				bestExclude = exclude;
-				source = 1;
-				console.log("source change")
-			}
+		z	}
 			teams = [];
 		}
-		if(source === 0) arr = bestExclude;
-		/* Formulate the eventual output */
+
+		/* Create output */
 		let teamOutput = "Largest Difference: " + Math.floor(best)
 		teamOutput += "\nAverage Sr: " + Math.floor(bestTeam.reduce((total, team) => team.avgSr+total, 0)/bestTeam.length)
 		teamOutput += (bestExclude.length === 0) ? "" : "\nExcluded: " + bestExclude.map(index =>{
@@ -99,23 +85,6 @@ $(document).ready(function(){
 		$("#teamDisplay").html(teamOutput);
 		$("#send").removeAttr("disabled")
 	});
-
-/* Generate test data */
-
-$("#testData").on("click", () => {
-	let names = [];
-	let srs = [];
-	for(let i = 0; i < 1000; i++){
-		names.push(Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0,7));
-		srs.push((Math.floor(norm()*2500)+2500));
-	}
-	$("#names").html(names.map((name) => { return name + '\n'}));
-	$("#sr").html(srs.map((sr) => {return sr + '\n'}));
-})
-
-/* Parse Inputs */
-
-/* Use simple and fast algorithm to find initial best case */
 
 	function initial(arr, teamsize, poolSize){
 		let teamSR = 0, choice;
@@ -162,9 +131,11 @@ $("#testData").on("click", () => {
 		let sr = $("#sr").val();
 		names = parseInput(names);
 		sr = parseInput(sr);
+		let len = sr.length;
 		sr = sr.map(a => parseInt(a));
 		sr = sr.filter(Number);
-		if(names.length === 0 || sr.length === 0) return 1;
+		if(sr.length != len && sr.length != names.length) err = 3;
+		if(names.length === 0 || sr.length === 0) err = 1;
 		return {names, sr, teamsize, err}
 
 	}
@@ -187,18 +158,13 @@ $("#testData").on("click", () => {
 	function parseInput(input){
 		return input.replace(/(\s)+/gim, ";").split(";").filter(String);
 	}
-/* Generate pseudo-normally distributed numbers */
 
-	let norm = () => {
-		return ((Math.random() + Math.random() + Math.random() + Math.random() + Math.random() + Math.random()) - 3) / 3;
-	}
 	function displayError(code){
 		let notif = $("#notif")
-		let messages = ["The lists are not the same length", "Teamsize not set"]
+		let messages = ["The lists are not the same length", "Teamsize not set", "Ranking list could not be parsed correctly"]
 		notif.html(messages[code-1])
-		notif.toggleClass("hidden");
+		notif.attr("style", "display:inline");
 		$("#send").removeAttr("disabled");
-		setTimeout(() => $("#notif").toggleClass("hidden"), 3000)
+		setTimeout(() => $("#notif").fadeOut("slow"), 3000)
 	}
-
 });

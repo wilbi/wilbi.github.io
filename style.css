@@ -7,7 +7,7 @@
 	display:inline-block;
 	position:fixed;
 	left:50%;
-	height:95%;
+	height:90%;
 }
 .notif{
   width: 80%;
@@ -22,4 +22,20 @@
 }
 .hidden{
   display: none;
+}
+body{
+  background-color: #bababa;
+}
+textarea{
+  border-style: solid;
+  border-color: black;
+  resize:none;
+}
+input{
+  border-style:solid;
+  border-color: black;
+}
+button{
+  border-color:black;
+  border-style:solid;
 }
